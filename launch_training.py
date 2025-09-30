@@ -142,6 +142,38 @@ def quick_test():
     except KeyboardInterrupt:
         print("⏹️ Test interrupted")
 
+def setup_wandb_key():
+    """Setup WANDB API key if not configured"""
+    env_file = Path(".env")
+    
+    if env_file.exists():
+        with open(env_file, 'r') as f:
+            content = f.read()
+        
+        if "WANDB_API_KEY=your_wandb_api_key_here" in content:
+            print("\n🔑 WANDB API Key Setup")
+            print("=" * 30)
+            print("Get your API key from: https://wandb.ai/authorize")
+            
+            api_key = input("Enter your WANDB API key (or press Enter to skip): ").strip()
+            
+            if api_key:
+                # Replace placeholder with actual key
+                new_content = content.replace(
+                    "WANDB_API_KEY=your_wandb_api_key_here",
+                    f"WANDB_API_KEY={api_key}"
+                )
+                
+                with open(env_file, 'w') as f:
+                    f.write(new_content)
+                
+                print("✅ WANDB API key configured")
+                return True
+            else:
+                print("⚠️  Skipping WANDB setup - training will run in offline mode")
+                return False
+    return True
+
 def main():
     """Main launcher"""
     
@@ -152,22 +184,48 @@ def main():
         elif sys.argv[1] == "eval":
             subprocess.run([sys.executable, "scripts/evaluate.py"])
             return
+        elif sys.argv[1] == "tmux":
+            print("�️  For tmux training, use: ./tmux_training.sh start")
+            return
     
-    print("🔧 PHI-3 PII ANONYMIZATION TRAINER")
+    print("�🔧 PHI-3 PII ANONYMIZATION TRAINER")
     print("=" * 40)
-    print("Commands:")
-    print("  python launch_training.py      - Start training")
-    print("  python launch_training.py test - Test trained model")
-    print("  python launch_training.py eval - Evaluate model")
+    print("Training Options:")
+    print("  python launch_training.py        - Interactive training")
+    print("  ./tmux_training.sh start         - Persistent tmux session")
+    print()
+    print("Other Commands:")
+    print("  python launch_training.py test   - Test trained model")
+    print("  python launch_training.py eval   - Evaluate model")
+    print("  ./tmux_training.sh status        - Check tmux session")
     print()
     
-    success = start_training()
+    # Setup WANDB key if needed
+    setup_wandb_key()
     
-    if success:
-        # Offer to test
-        response = input("\n🧪 Run inference test? (y/n): ").lower().strip()
-        if response == 'y':
-            quick_test()
+    # Ask user preference
+    print("🤔 Choose training method:")
+    print("1. Interactive training (current terminal)")
+    print("2. Persistent tmux session (recommended for long training)")
+    
+    choice = input("Enter choice (1/2): ").strip()
+    
+    if choice == "2":
+        print("\n🖥️  Starting tmux session...")
+        try:
+            subprocess.run(["./tmux_training.sh", "start"], check=True)
+        except subprocess.CalledProcessError:
+            print("❌ Failed to start tmux session")
+            print("   Falling back to interactive training...")
+            start_training()
+    else:
+        success = start_training()
+        
+        if success:
+            # Offer to test
+            response = input("\n🧪 Run inference test? (y/n): ").lower().strip()
+            if response == 'y':
+                quick_test()
 
 if __name__ == "__main__":
     main()

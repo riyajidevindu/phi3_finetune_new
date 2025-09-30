@@ -1,18 +1,21 @@
 #!/usr/bin/env python3
 """
-Phi-3 Multi-Task PII Anonymization Fine-tuning Script
+Phi-3 PII Anonymization Fine-tuning Script
 Optimized for 16GB GPU with QLoRA 4-bit quantization
 """
 
 import os
 import json
 import yaml
-import torch
-import logging
 from pathlib import Path
-from dataclasses import dataclass
 from typing import Dict, List, Any, Optional
-import transformers
+import logging
+from datetime import datetime
+from dotenv import load_dotenv
+
+import torch
+import wandb
+from datasets import Dataset, load_dataset
 from transformers import (
     AutoTokenizer,
     AutoModelForCausalLM,
@@ -22,8 +25,10 @@ from transformers import (
     DataCollatorForLanguageModeling
 )
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
-from datasets import Dataset
-import wandb
+import bitsandbytes as bnb
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -61,6 +66,39 @@ class Phi3PIITrainer:
                 Path(self.config[dir_key]).mkdir(parents=True, exist_ok=True)
         
         logger.info("✅ Environment setup complete")
+    
+    def setup_wandb(self):
+        """Initialize Weights & Biases logging"""
+        
+        # Check if WANDB_API_KEY is set
+        wandb_api_key = os.getenv('WANDB_API_KEY')
+        if not wandb_api_key:
+            logger.warning("⚠️  WANDB_API_KEY not found in environment variables")
+            logger.warning("   Please set it in your .env file or disable wandb logging")
+            # Set wandb to offline mode if no API key
+            os.environ['WANDB_MODE'] = 'offline'
+        
+        # Get project and entity from environment or use defaults
+        wandb_project = os.getenv('WANDB_PROJECT', 'phi3-pii-anonymization')
+        wandb_entity = os.getenv('WANDB_ENTITY', None)
+        
+        wandb.init(
+            project=wandb_project,
+            entity=wandb_entity,
+            name=f"phi3-pii-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
+            config={
+                **self.config,
+                "model_name": "microsoft/Phi-3-mini-4k-instruct",
+                "method": "QLoRA 4-bit",
+                "task": "PII Detection & Anonymization",
+                "gpu": torch.cuda.get_device_name() if torch.cuda.is_available() else "CPU"
+            }
+        )
+        
+        if os.getenv('WANDB_MODE') == 'offline':
+            logger.info(f"🔄 W&B initialized in OFFLINE mode: {wandb.run.name}")
+        else:
+            logger.info(f"🔄 W&B initialized: {wandb.run.name}")
     
     def load_tokenizer(self):
         """Load and configure tokenizer"""
@@ -241,13 +279,8 @@ class Phi3PIITrainer:
         logger.info("🚀 Starting Phi-3 PII Anonymization Training")
         logger.info("=" * 60)
         
-        # Initialize wandb if configured
-        if "wandb_project" in self.config:
-            wandb.init(
-                project=self.config["wandb_project"],
-                name=self.config.get("wandb_run_name", "phi3-pii-training"),
-                config=self.config
-            )
+        # Initialize wandb with environment variables
+        self.setup_wandb()
         
         # Load components
         tokenizer = self.load_tokenizer()
