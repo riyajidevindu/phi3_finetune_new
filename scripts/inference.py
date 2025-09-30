@@ -60,7 +60,9 @@ Always respond with valid JSON format."""
             self.model_path,
             torch_dtype=torch.float16,
             device_map="auto",
-            trust_remote_code=True
+            trust_remote_code=True,
+            attn_implementation="eager",  # Fix for cache compatibility
+            use_cache=False  # Disable caching to avoid compatibility issues
         )
         
         model.eval()
@@ -153,13 +155,15 @@ Always respond with valid JSON format."""
         # Generate response
         with torch.no_grad():
             outputs = self.model.generate(
-                **inputs,
+                input_ids=inputs["input_ids"],
+                attention_mask=inputs.get("attention_mask", None),
                 max_new_tokens=max_length,
                 do_sample=True,
                 temperature=0.1,  # Low temperature for consistent output
                 top_p=0.9,
                 pad_token_id=self.tokenizer.eos_token_id,
-                eos_token_id=self.tokenizer.eos_token_id
+                eos_token_id=self.tokenizer.eos_token_id,
+                use_cache=False  # Disable caching for compatibility
             )
         
         # Decode response
