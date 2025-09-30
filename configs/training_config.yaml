@@ -1,0 +1,104 @@
+# Phi-3 Multi-Task PII Anonymization Training Configuration
+# Optimized for 16GB GPU with QLoRA
+
+# Model Configuration
+model_name: "microsoft/Phi-3-mini-4k-instruct"
+model_cache_dir: "/opt/projects/phi3_finetune_new/models/cache"
+output_dir: "/opt/projects/phi3_finetune_new/models/checkpoints"
+final_model_dir: "/opt/projects/phi3_finetune_new/models/final"
+
+# Data Configuration
+train_file: "/opt/projects/phi3_finetune_new/data/processed/train.jsonl"
+validation_file: "/opt/projects/phi3_finetune_new/data/processed/validation.jsonl"
+test_file: "/opt/projects/phi3_finetune_new/data/processed/test.jsonl"
+
+# Training Parameters
+learning_rate: 2.0e-4
+num_train_epochs: 3
+max_seq_length: 2048
+per_device_train_batch_size: 1
+per_device_eval_batch_size: 1
+gradient_accumulation_steps: 8
+gradient_checkpointing: true
+dataloader_num_workers: 4
+remove_unused_columns: false
+
+# QLoRA Configuration
+use_qlora: true
+qlora_config:
+  load_in_4bit: true
+  bnb_4bit_compute_dtype: "float16"
+  bnb_4bit_quant_type: "nf4"
+  bnb_4bit_use_double_quant: false
+
+# LoRA Configuration  
+lora_config:
+  r: 16
+  lora_alpha: 32
+  lora_dropout: 0.1
+  bias: "none"
+  task_type: "CAUSAL_LM"
+  target_modules:
+    - "q_proj"
+    - "k_proj" 
+    - "v_proj"
+    - "o_proj"
+    - "gate_proj"
+    - "up_proj"
+    - "down_proj"
+
+# Optimization Configuration
+warmup_ratio: 0.1
+weight_decay: 0.01
+max_grad_norm: 1.0
+optim: "paged_adamw_8bit"
+lr_scheduler_type: "cosine"
+
+# Evaluation Configuration
+evaluation_strategy: "steps"
+eval_steps: 100
+save_strategy: "steps"
+save_steps: 100
+save_total_limit: 3
+load_best_model_at_end: true
+metric_for_best_model: "eval_loss"
+
+# Logging Configuration
+logging_dir: "/opt/projects/phi3_finetune_new/logs"
+logging_strategy: "steps"
+logging_steps: 10
+report_to: ["wandb", "tensorboard"]
+
+# Wandb Configuration (optional)
+wandb_project: "phi3-pii-anonymization"
+wandb_run_name: "phi3-multi-task-qlora"
+
+# Chat Template (Phi-3 format)
+chat_template: |
+  {% for message in messages %}
+  {%- if message['role'] == 'system' -%}
+  <|system|>
+  {{ message['content'] }}<|end|>
+  {%- elif message['role'] == 'user' -%}
+  <|user|>
+  {{ message['content'] }}<|end|>
+  {%- elif message['role'] == 'assistant' -%}
+  <|assistant|>
+  {{ message['content'] }}<|end|>
+  {%- endif %}
+  {% endfor %}
+
+# Memory Optimization
+fp16: false
+bf16: true  # Better for training
+tf32: true  # Faster on Ampere GPUs
+group_by_length: true
+dataloader_pin_memory: true
+
+# Early Stopping
+early_stopping_patience: 3
+early_stopping_threshold: 0.001
+
+# Hardware Configuration
+cuda_visible_devices: "0"
+torch_compile: false  # Experimental, may cause issues

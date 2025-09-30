@@ -1,0 +1,32 @@
+{
+  "dataset_name": "phi3_pii_anonymization",
+  "description": "Multi-task PII detection and anonymization dataset for Phi-3",
+  "total_samples": 10000,
+  "splits": {
+    "train": {
+      "count": 7999,
+      "pii_samples": 4039,
+      "non_pii_samples": 3960
+    },
+    "validation": {
+      "count": 1499,
+      "pii_samples": 757,
+      "non_pii_samples": 742
+    },
+    "test": {
+      "count": 502,
+      "pii_samples": 253,
+      "non_pii_samples": 249
+    }
+  },
+  "task_format": "multi_task_instruction_following",
+  "output_format": "structured_json",
+  "fields": [
+    "Need Anonymization",
+    "Detections",
+    "Anonymization Technique",
+    "Improved Prompt"
+  ],
+  "model_target": "microsoft/Phi-3-mini-4k-instruct",
+  "training_method": "qlora_4bit"
+}
