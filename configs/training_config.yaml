@@ -63,7 +63,7 @@ optim: "paged_adamw_8bit"
 lr_scheduler_type: "cosine"
 
 # Evaluation Configuration - Enhanced for Early Stopping
-evaluation_strategy: "steps"
+eval_strategy: "steps"  # Changed from evaluation_strategy
 eval_steps: 250  # More frequent evaluation for better early stopping
 save_strategy: "steps"
 save_steps: 250  # Save checkpoints more frequently

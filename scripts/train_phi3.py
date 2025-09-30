@@ -245,8 +245,8 @@ class Phi3PIITrainer:
             optim=self.config.get("optim", "paged_adamw_8bit"),
             lr_scheduler_type=self.config.get("lr_scheduler_type", "cosine"),
             
-            # Evaluation
-            evaluation_strategy=self.config.get("evaluation_strategy", "steps"),
+            # Evaluation (updated parameter names)
+            eval_strategy=self.config.get("eval_strategy", "steps"),  # Use correct parameter name
             eval_steps=self.config.get("eval_steps", 100),
             
             # Saving
@@ -255,6 +255,7 @@ class Phi3PIITrainer:
             save_total_limit=self.config.get("save_total_limit", 3),
             load_best_model_at_end=self.config.get("load_best_model_at_end", True),
             metric_for_best_model=self.config.get("metric_for_best_model", "eval_loss"),
+            greater_is_better=self.config.get("greater_is_better", False),  # Added for clarity
             
             # Logging
             logging_dir=self.config.get("logging_dir"),

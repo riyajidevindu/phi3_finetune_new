@@ -1,3 +1,5 @@
 /phi3_env
 /dataset
 .env
+/wandb
+/models

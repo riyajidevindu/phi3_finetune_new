@@ -1,8 +1,6 @@
 #!/bin/bash
-"""
-Tmux Session Manager for Phi-3 Training
-Persistent training sessions that survive disconnections
-"""
+# Tmux Session Manager for Phi-3 Training
+# Persistent training sessions that survive disconnections
 
 set -e
 
