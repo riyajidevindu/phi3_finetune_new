@@ -322,30 +322,3 @@ class PIIAnonymizationService:
             "confidence": "high"  # Add confidence scoring if needed
         }
 ```
-
-## 📚 Additional Resources
-
-### Learning Resources
-- [Phi-3 Technical Report](https://arxiv.org/abs/2404.14219)
-- [QLoRA Paper](https://arxiv.org/abs/2305.14314) 
-- [PII Detection Best Practices](https://github.com/microsoft/presidio)
-
-### Community & Support
-- **Issues**: Report bugs or request features via GitHub issues
-- **Discussions**: Technical questions and optimizations
-- **Contributing**: Pull requests welcome with performance benchmarks
-
-## 📜 License & Usage
-
-**Educational & Research Use**: This project is designed for learning and research purposes.
-
-**Commercial Use**: Ensure compliance with:
-- Microsoft's Phi-3 license terms
-- Your organization's data privacy policies
-- Applicable regulations (GDPR, CCPA, etc.)
-
-**Model Attribution**: Built on Microsoft Phi-3-mini-4k-instruct
-
----
-
-**🎓 Senior AI Engineer Notes**: This implementation follows industry best practices for production-ready fine-tuning: proper data validation, memory optimization, comprehensive evaluation, and robust error handling. The single-model multi-task approach ensures consistency and efficiency in production environments.
