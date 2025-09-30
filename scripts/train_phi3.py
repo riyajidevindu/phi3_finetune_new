@@ -22,7 +22,8 @@ from transformers import (
     TrainingArguments,
     Trainer,
     BitsAndBytesConfig,
-    DataCollatorForLanguageModeling
+    DataCollatorForLanguageModeling,
+    EarlyStoppingCallback
 )
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 import bitsandbytes as bnb
@@ -317,6 +318,19 @@ class Phi3PIITrainer:
         # Training arguments
         training_args = self.setup_training_arguments()
         
+        # Setup callbacks
+        callbacks = []
+        
+        # Add early stopping if enabled
+        if self.config.get("early_stopping", {}).get("enabled", False):
+            early_stopping_config = self.config["early_stopping"]
+            early_stopping = CustomEarlyStoppingCallback(
+                early_stopping_patience=early_stopping_config.get("patience", 3),
+                early_stopping_threshold=early_stopping_config.get("min_delta", 0.001)
+            )
+            callbacks.append(early_stopping)
+            logger.info(f"🎯 Early stopping enabled: patience={early_stopping_config.get('patience', 3)}, min_delta={early_stopping_config.get('min_delta', 0.001)}")
+        
         # Initialize trainer
         trainer = Trainer(
             model=model,
@@ -325,6 +339,7 @@ class Phi3PIITrainer:
             eval_dataset=datasets.get("validation"),
             tokenizer=tokenizer,
             data_collator=data_collator,
+            callbacks=callbacks
         )
         
         # Check GPU memory before training
@@ -335,7 +350,26 @@ class Phi3PIITrainer:
         
         # Start training
         logger.info("🏋️ Starting training...")
-        trainer.train()
+        logger.info(f"📊 Training for up to {self.config['num_train_epochs']} epochs")
+        if self.config.get("early_stopping", {}).get("enabled", False):
+            logger.info("🎯 Early stopping is enabled - training may stop before max epochs")
+        
+        # Train the model
+        train_result = trainer.train()
+        
+        # Log training summary
+        logger.info("📈 Training Summary:")
+        logger.info(f"   Total steps: {train_result.global_step}")
+        logger.info(f"   Training loss: {train_result.training_loss:.6f}")
+        
+        # Final evaluation
+        if "validation" in datasets:
+            logger.info("🔍 Running final evaluation...")
+            eval_results = trainer.evaluate()
+            logger.info("📊 Final Evaluation Results:")
+            for key, value in eval_results.items():
+                if isinstance(value, (int, float)):
+                    logger.info(f"   {key}: {value:.6f}")
         
         # Save final model
         logger.info("💾 Saving final model...")
@@ -343,11 +377,26 @@ class Phi3PIITrainer:
         trainer.save_model(final_model_path)
         tokenizer.save_pretrained(final_model_path)
         
+        # Save training metrics
+        training_metrics = {
+            "final_training_loss": train_result.training_loss,
+            "total_steps": train_result.global_step,
+            "epochs_completed": train_result.global_step / len(trainer.get_train_dataloader()),
+        }
+        
+        if "validation" in datasets:
+            training_metrics.update(eval_results)
+            
+        metrics_file = final_model_path / "training_metrics.json"
+        with open(metrics_file, 'w') as f:
+            json.dump(training_metrics, f, indent=2)
+        
         # Save training config
         with open(final_model_path / "training_config.json", 'w') as f:
             json.dump(self.config, f, indent=2)
         
         logger.info(f"✅ Training complete! Model saved to {final_model_path}")
+        logger.info(f"📋 Training metrics saved to {metrics_file}")
         
         # Final GPU memory check
         if torch.cuda.is_available():

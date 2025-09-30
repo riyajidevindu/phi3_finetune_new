@@ -8,7 +8,15 @@ import subprocess
 import sys
 import os
 import time
-from pathlib import Path
+from pat        elif sys.argv[1] == "eval":
+            subprocess.run([sys.executable, "scripts/evaluate.py"])
+            return
+        elif sys.argv[1] == "analyze":
+            subprocess.run([sys.executable, "scripts/analyze_training.py"])
+            return
+        elif sys.argv[1] == "tmux":
+            print("🖥️  For tmux training, use: ./tmux_training.sh start")
+            returnmport Path
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -195,9 +203,10 @@ def main():
     print("  ./tmux_training.sh start         - Persistent tmux session")
     print()
     print("Other Commands:")
-    print("  python launch_training.py test   - Test trained model")
-    print("  python launch_training.py eval   - Evaluate model")
-    print("  ./tmux_training.sh status        - Check tmux session")
+    print("  python launch_training.py test     - Test trained model")
+    print("  python launch_training.py eval     - Evaluate model")
+    print("  python launch_training.py analyze  - Analyze training results")
+    print("  ./tmux_training.sh status          - Check tmux session")
     print()
     
     # Setup WANDB key if needed
