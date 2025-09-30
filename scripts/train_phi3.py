@@ -35,6 +35,9 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Use standard EarlyStoppingCallback for reliability
+# Custom logging will be handled in the main training loop
+
 class Phi3PIITrainer:
     """Phi-3 PII Anonymization Multi-Task Trainer"""
     
@@ -133,18 +136,24 @@ class Phi3PIITrainer:
             bnb_4bit_use_double_quant=qlora_config.get("bnb_4bit_use_double_quant", False)
         )
         
-        # Load model with quantization
+        # Load model with quantization and compatibility fixes
         model = AutoModelForCausalLM.from_pretrained(
             self.config["model_name"],
             quantization_config=bnb_config,
             cache_dir=self.config.get("model_cache_dir"),
             trust_remote_code=True,
             torch_dtype=torch.float16,
-            device_map="auto"
+            device_map="auto",
+            attn_implementation="eager",  # Use eager attention to avoid cache issues
+            use_cache=False  # Disable caching during training
         )
         
         # Prepare model for k-bit training
         model = prepare_model_for_kbit_training(model)
+        
+        # Additional compatibility fixes
+        if hasattr(model.config, 'use_cache'):
+            model.config.use_cache = False  # Ensure no caching during training
         
         # LoRA configuration
         lora_config = self.config.get("lora_config", {})
@@ -236,6 +245,7 @@ class Phi3PIITrainer:
             per_device_eval_batch_size=self.config.get("per_device_eval_batch_size", 1),
             gradient_accumulation_steps=self.config.get("gradient_accumulation_steps", 8),
             gradient_checkpointing=self.config.get("gradient_checkpointing", True),
+            gradient_checkpointing_kwargs={"use_reentrant": False},  # Fix for newer PyTorch versions
             
             # Optimization
             learning_rate=self.config.get("learning_rate", 2e-4),
@@ -325,12 +335,13 @@ class Phi3PIITrainer:
         # Add early stopping if enabled
         if self.config.get("early_stopping", {}).get("enabled", False):
             early_stopping_config = self.config["early_stopping"]
-            early_stopping = CustomEarlyStoppingCallback(
+            early_stopping = EarlyStoppingCallback(
                 early_stopping_patience=early_stopping_config.get("patience", 3),
                 early_stopping_threshold=early_stopping_config.get("min_delta", 0.001)
             )
             callbacks.append(early_stopping)
             logger.info(f"🎯 Early stopping enabled: patience={early_stopping_config.get('patience', 3)}, min_delta={early_stopping_config.get('min_delta', 0.001)}")
+            logger.info(f"📊 Monitoring: {early_stopping_config.get('monitor_metric', 'eval_loss')}")
         
         # Initialize trainer
         trainer = Trainer(
