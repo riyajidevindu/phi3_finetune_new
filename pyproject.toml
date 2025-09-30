@@ -1,0 +1,110 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "phi3-finetune"
+version = "0.1.0"
+description = "Fine-tuning Microsoft Phi-3-mini-4k-instruct for PII detection and anonymization"
+authors = [
+    {name = "AI Engineer", email = "engineer@phi3project.com"}
+]
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.9"
+keywords = ["phi-3", "fine-tuning", "pii", "anonymization", "llm"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = [
+    "torch>=2.1.0",
+    "transformers>=4.36.0",
+    "accelerate>=0.25.0",
+    "peft>=0.7.0",
+    "bitsandbytes>=0.41.0",
+    "datasets>=2.15.0",
+    "trl>=0.7.0",
+    "pandas>=2.1.0",
+    "numpy>=1.24.0",
+    "openpyxl>=3.1.0",
+    "scikit-learn>=1.3.0",
+    "wandb>=0.16.0",
+    "tqdm>=4.66.0",
+    "click>=8.1.0",
+    "python-dotenv>=1.0.0",
+    "pyyaml>=6.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "jupyter>=1.0.0",
+    "notebook>=7.0.0",
+    "matplotlib>=3.7.0",
+    "seaborn>=0.12.0",
+    "pytest>=7.4.0",
+    "black>=23.10.0",
+    "flake8>=6.1.0",
+    "mypy>=1.7.0",
+]
+
+api = [
+    "fastapi>=0.104.0",
+    "uvicorn>=0.24.0",
+]
+
+monitoring = [
+    "psutil>=5.9.0",
+    "py3nvml>=0.2.0",
+    "gpustat>=1.1.0",
+    "tensorboard>=2.15.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/username/phi3-finetune"
+Repository = "https://github.com/username/phi3-finetune.git"
+Issues = "https://github.com/username/phi3-finetune/issues"
+
+[project.scripts]
+phi3-train = "phi3_finetune.train:main"
+phi3-preprocess = "phi3_finetune.preprocess:main"
+phi3-evaluate = "phi3_finetune.evaluate:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.black]
+line-length = 100
+target-version = ['py39']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
