@@ -1,0 +1,76 @@
+{
+  "total_sheets": 5,
+  "sheet_info": {
+    "Medical & Demographic PII": {
+      "rows": 2000,
+      "columns": [
+        "Original",
+        "Need Anonymization",
+        "Output",
+        "Anonymization Technique",
+        "Improved Prompt",
+        "Written",
+        "Semantic Match",
+        "Semantic Similarity Score"
+      ],
+      "memory_mb": 2.9060916900634766
+    },
+    "Location & Contact Info": {
+      "rows": 2000,
+      "columns": [
+        "Original",
+        "Need Anonymization",
+        "Output",
+        "Anonymization Technique",
+        "Improved Prompt",
+        "Written",
+        "Semantic Match",
+        "Semantic Similarity Score"
+      ],
+      "memory_mb": 2.6185340881347656
+    },
+    "Financial & Identification Info": {
+      "rows": 2000,
+      "columns": [
+        "Original",
+        "Need Anonymization",
+        "Output",
+        "Anonymization Technique",
+        "Improved Prompt",
+        "Written",
+        "Semantic Match",
+        "Semantic Similarity Score"
+      ],
+      "memory_mb": 2.8679370880126953
+    },
+    "Employment Education & Social C": {
+      "rows": 2000,
+      "columns": [
+        "Original",
+        "Need Anonymization",
+        "Output",
+        "Anonymization Technique",
+        "Improved Prompt",
+        "Written",
+        "Semantic Match",
+        "Semantic Similarity Score"
+      ],
+      "memory_mb": 2.604466438293457
+    },
+    "Internal Document Prompts": {
+      "rows": 2000,
+      "columns": [
+        "Original",
+        "Need Anonymization",
+        "Output",
+        "Anonymization Technique",
+        "Improved Prompt",
+        "Written",
+        "Semantic Match",
+        "Semantic Similarity Score"
+      ],
+      "memory_mb": 2.858194351196289
+    }
+  },
+  "total_samples": 10000
+}
